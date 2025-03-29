@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% block title %}Folders & Documents{% endblock %}
+{% block title %}Folders Management{% endblock %}
 {% block content %}
 <div class="subpage">
-  <h2>Folders & Documents</h2>
+  <h2>Folders Management</h2>
   <form method="GET" class="search-form">
     <input type="text" name="search" placeholder="Search folders and files..." value="{{ search or '' }}">
     <button type="submit" class="btn">Search</button>
@@ -27,7 +27,6 @@
   {% else %}
     <p>No folders found.</p>
   {% endif %}
-  
   <h3>Documents</h3>
   {% if documents %}
     <ul class="document-list">

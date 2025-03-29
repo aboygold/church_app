@@ -9,9 +9,14 @@ from werkzeug.utils import secure_filename
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user, UserMixin
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key'  # Replace with your secret key
+
+# Basic configuration
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'default-secret-key')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///church.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Additional configuration from environment variable (if needed)
+app.config['CHURCH_DATABASE'] = os.environ.get('church_database', 'default_value')
 
 # Configure upload folders
 app.config['MEMBER_UPLOAD_FOLDER'] = os.path.join('static', 'uploads', 'members')
@@ -255,12 +260,12 @@ def export_csv():
     return Response(generate(), mimetype="text/csv", headers={"Content-Disposition": "attachment;filename=members.csv"})
 
 # ----------------------
-# Programs & Messages (View Mode) Routes
+# Programs & Messages (View Mode)
 # ----------------------
 @app.route('/programs_messages', methods=['GET'])
 @login_required
 def programs_messages():
-    # This page shows only main folder names with a "View Contents" button.
+    # Display only main folder names with a "View Contents" button.
     main_folders = Folder.query.filter_by(parent_id=None).all()
     return render_template('programs_messages.html', folders=main_folders)
 
@@ -273,7 +278,7 @@ def view_folder(folder_id):
     return render_template('view_folder.html', folder=folder, subfolders=subfolders, documents=documents)
 
 # ----------------------
-# Folders Management (Action Mode) Routes
+# Folders Management (Action Mode)
 # ----------------------
 @app.route('/folders', methods=['GET'])
 @login_required

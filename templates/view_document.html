@@ -8,6 +8,6 @@
   {% else %}
     <p>Cannot display file contents. <a href="{{ url_for('uploaded_document', filename=document.filename) }}">Download</a> instead.</p>
   {% endif %}
-  <p><a class="btn" href="{{ url_for('folders') }}">Back to Folders</a></p>
+  <p><a class="btn" href="{{ url_for('folders_page') }}">Back to Folders</a></p>
 </div>
 {% endblock %}
