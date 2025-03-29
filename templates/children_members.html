@@ -1,24 +1,28 @@
 {% extends "base.html" %}
-{% block title %}CHILDREN RECORDS{% endblock %}
+{% block title %}Children Members{% endblock %}
 {% block content %}
 <div class="subpage">
   <p><a class="btn" href="{{ url_for('dashboard') }}">Back to Dashboard</a></p>
-  <h2>CHILDREN RECORDS</h2>
+  <h2>Children Members</h2>
   <div class="search-sort">
     <form method="GET" class="search-form">
       <input type="text" name="search" placeholder="Search by name or barcode" value="{{ request.args.get('search', '') }}">
       <button type="submit" class="btn">Search</button>
     </form>
     <div class="sort-options">
-      <span>Sort by Name:</span>
-      <a href="{{ url_for(request.endpoint, category='CHILDREN', sort='asc', search=request.args.get('search')) }}" class="btn sort-btn">A-Z</a>
-      <a href="{{ url_for(request.endpoint, category='CHILDREN', sort='desc', search=request.args.get('search')) }}" class="btn sort-btn">Z-A</a>
+      <span>Sort by:</span>
+      <a href="{{ url_for(request.endpoint, category='CHILDREN', sort='name_asc', search=request.args.get('search')) }}" class="btn sort-btn">Name A-Z</a>
+      <a href="{{ url_for(request.endpoint, category='CHILDREN', sort='name_desc', search=request.args.get('search')) }}" class="btn sort-btn">Name Z-A</a>
+      <a href="{{ url_for(request.endpoint, category='CHILDREN', sort='dept_asc', search=request.args.get('search')) }}" class="btn sort-btn">Department A-Z</a>
+      <a href="{{ url_for(request.endpoint, category='CHILDREN', sort='dept_desc', search=request.args.get('search')) }}" class="btn sort-btn">Department Z-A</a>
+      <a href="{{ url_for(request.endpoint, category='CHILDREN', sort='barcode_asc', search=request.args.get('search')) }}" class="btn sort-btn">Barcode A-Z</a>
+      <a href="{{ url_for(request.endpoint, category='CHILDREN', sort='barcode_desc', search=request.args.get('search')) }}" class="btn sort-btn">Barcode Z-A</a>
     </div>
   </div>
   <table class="member-table">
     <thead>
       <tr>
-        <th>ID</th>
+        <th>No.</th>
         <th>Full Name</th>
         <th>Member I.D/Barcode</th>
         <th>Department</th>
@@ -34,7 +38,7 @@
     <tbody>
       {% for member in members %}
       <tr>
-        <td>{{ member.id }}</td>
+        <td>{{ loop.index }}</td>
         <td>{{ member.full_name }}</td>
         <td>{{ member.barcode }}</td>
         <td>{{ member.department }}</td>
