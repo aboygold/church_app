@@ -11,8 +11,8 @@
     </form>
     <div class="sort-options">
       <span>Sort by Name:</span>
-      <a href="{{ url_for(request.endpoint, category='ADULT', sort='asc', search=request.args.get('search')) }}" class="btn sort-btn">A-Z</a>
-      <a href="{{ url_for(request.endpoint, category='ADULT', sort='desc', search=request.args.get('search')) }}" class="btn sort-btn">Z-A</a>
+      <a href="{{ url_for(request.endpoint, category='YOUTH', sort='asc', search=request.args.get('search')) }}" class="btn sort-btn">A-Z</a>
+      <a href="{{ url_for(request.endpoint, category='YOUTH', sort='desc', search=request.args.get('search')) }}" class="btn sort-btn">Z-A</a>
     </div>
   </div>
   
