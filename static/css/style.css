@@ -1,13 +1,13 @@
 /* ------------------------------
    Supabase-Inspired Dark Theme with Mobile-Friendly Table Layout
-   ------------------------------ */
+------------------------------ */
 
 /* Root Color Variables */
 :root {
-  --bg-color: #0F172A;            /* Dark slate background */
-  --primary-color: #3B82F6;       /* Blue accent */
+  --bg-color: #0F172A;
+  --primary-color: #3B82F6;
   --primary-light: #60A5FA;
-  --text-color: #E2E8F0;          /* Light text */
+  --text-color: #E2E8F0;
   --nav-bg: #1E293B;
   --card-bg: #1E293B;
   --border-color: #334155;
@@ -96,7 +96,6 @@ input[type="file"] {
   color: var(--text-color);
   font-size: 0.9rem;
 }
-
 button, .btn {
   background-color: var(--primary-color);
   color: var(--bg-color);
@@ -172,31 +171,21 @@ button:hover, .btn:hover {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  margin-bottom: 15px;
+  margin-bottom: 20px;  /* Increased spacing below search bar */
 }
 .search-form {
   flex: 1;
   margin-right: 10px;
 }
-.search-form input {
-  margin-right: 5px;
-  font-size: 0.9rem;
-}
 .sort-options {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;  /* Added gap between sort buttons and label */
+  margin-top: 10px;
   font-size: 0.9rem;
 }
-.sort-btn {
-  margin-right: 5px;
-  padding: 6px 10px;
-  border-radius: 4px;
-  background-color: var(--primary-light);
-  color: var(--bg-color);
-}
 
-/* Member Table (Auto Layout, No Horizontal Overflow) */
+/* Member Table (Auto Layout) */
 .member-table {
   width: 100%;
   border-collapse: collapse;
@@ -223,12 +212,12 @@ button:hover, .btn:hover {
   white-space: normal;
 }
 
-/* Adjust Action Buttons in Table */
+/* Action Column Buttons */
 .member-table td.col-actions {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 4px;
+  gap: 8px;  /* Ensures buttons have space between them */
 }
 
 /* Profile Photos */
