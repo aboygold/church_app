@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Scan Member Barcode{% endblock %}
+{% block content %}
+<div class="form-container">
+  <h2>Scan Member Barcode</h2>
+  <form method="POST">
+    <label>Enter Barcode</label>
+    <input type="text" name="barcode" required>
+    <button type="submit" class="btn">Search</button>
+  </form>
+  {% if member %}
+  <h3>Member Found:</h3>
+  <p><strong>Name:</strong> {{ member.name }}</p>
+  <p><strong>Department:</strong> {{ member.department }}</p>
+  <p>
+    <strong>Picture:</strong>
+    {% if member.picture %}
+      <img src="{{ url_for('uploaded_member', filename=member.picture) }}" alt="{{ member.name }}" class="profile-photo-large">
+    {% else %}
+      No Picture
+    {% endif %}
+  </p>
+  {% endif %}
+  <p><a class="btn" href="{{ url_for('dashboard') }}">Back to Dashboard</a></p>
+</div>
+{% endblock %}

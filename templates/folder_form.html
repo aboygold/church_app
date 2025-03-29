@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} Folder{% endblock %}
+{% block content %}
+<div class="form-container">
+  <h2>{{ action }} Folder</h2>
+  <form method="POST">
+    <label>Folder Name</label>
+    <input type="text" name="folder_name" value="{{ folder.name }}" required>
+    <button type="submit" class="btn">{{ action }} Folder</button>
+  </form>
+  <p><a class="btn" href="{{ url_for('programs') }}">Back to Programs &amp; Messages</a></p>
+</div>
+{% endblock %}

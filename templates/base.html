@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Church Database{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <header>
+    <h1>RECONCILED FAMILY OF CHRIST MISSION (R.F.C.M)<br>(CHURCH DATABASE)</h1>
+    {% if current_user.is_authenticated %}
+    <nav>
+      <ul>
+        <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+        <li><a href="{{ url_for('add_member') }}">Add Member</a></li>
+        <li><a href="{{ url_for('add_member') }}">Batch Upload</a></li>
+        <li><a href="{{ url_for('programs_messages') }}">Programs &amp; Messages</a></li>
+        <li><a href="{{ url_for('folders_page') }}">Folders</a></li>
+        <li><a href="{{ url_for('export_csv') }}">Export CSV</a></li>
+        {% if current_user.role == 'main_admin' %}
+        <li><a href="{{ url_for('assign_roles') }}">Assign Roles</a></li>
+        {% endif %}
+        <li><a href="{{ url_for('logout') }}">Logout</a></li>
+      </ul>
+    </nav>
+    {% endif %}
+  </header>
+  <div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="flashes">
+          {% for category, message in messages %}
+            <li class="{{ category }}">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </div>
+  <footer>
+    <div class="footer-text">
+      <p>All Right Reserved.
+
+        Designed and Developed by R.F.C.M IT DEPARTMENT. 
+        
+        Copyrights© 2025</p>
+    </div>
+  </footer>
+</body>
+</html>

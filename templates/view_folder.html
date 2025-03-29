@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}View Folder{% endblock %}
+{% block content %}
+<div class="subpage">
+  <h2>Folder: {{ folder.name }}</h2>
+  <h3>Subfolders</h3>
+  {% if subfolders %}
+    <ul class="folder-list">
+      {% for sub in subfolders %}
+        <li>
+          <strong>{{ sub.name }}</strong>
+          <a class="btn" href="{{ url_for('view_folder', folder_id=sub.id) }}">View</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No subfolders found.</p>
+  {% endif %}
+  <h3>Documents</h3>
+  {% if documents %}
+    <ul class="document-list">
+      {% for doc in documents %}
+        <li>
+          <strong>{{ doc.filename }}</strong>
+          <a class="btn" href="{{ url_for('view_document', doc_id=doc.id) }}">View</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No documents found.</p>
+  {% endif %}
+  <p><a class="btn" href="{{ url_for('programs_messages') }}">Back to Programs &amp; Messages</a></p>
+</div>
+{% endblock %}

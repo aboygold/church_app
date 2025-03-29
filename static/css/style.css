@@ -1,0 +1,311 @@
+/* ------------------------------
+   Supabase-Inspired Dark Theme with Mobile-Friendly Table Layout
+   ------------------------------ */
+
+/* Root Color Variables */
+:root {
+  --bg-color: #0F172A;            /* Dark slate background */
+  --primary-color: #3B82F6;       /* Blue accent */
+  --primary-light: #60A5FA;
+  --text-color: #E2E8F0;          /* Light text */
+  --nav-bg: #1E293B;
+  --card-bg: #1E293B;
+  --border-color: #334155;
+  --danger-bg: #EF4444;
+  --danger-hover: #F87171;
+}
+
+/* Global Styles */
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 0;
+  line-height: 1.5;
+}
+
+/* Header & Navigation */
+header {
+  background-color: var(--nav-bg);
+  padding: 20px;
+  text-align: center;
+}
+header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+nav ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 10px;
+}
+nav ul li {
+  margin: 0 10px;
+}
+nav ul li a {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+nav ul li a:hover {
+  background-color: var(--primary-color);
+  color: var(--bg-color);
+}
+
+/* Main Container */
+.container {
+  width: 95%;
+  max-width: 1000px;
+  margin: 20px auto;
+  padding: 10px;
+}
+
+/* Card & Form Containers */
+.form-container,
+.dashboard,
+.subpage {
+  background-color: var(--card-bg);
+  padding: 20px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+  border: 1px solid var(--border-color);
+}
+
+/* Inputs, Selects, and Buttons */
+input[type="text"],
+input[type="password"],
+input[type="date"],
+select,
+input[type="file"] {
+  width: 100%;
+  padding: 8px;
+  margin: 6px 0 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-size: 0.9rem;
+}
+
+button, .btn {
+  background-color: var(--primary-color);
+  color: var(--bg-color);
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: transform 0.2s ease, background-color 0.3s ease;
+}
+button:hover, .btn:hover {
+  transform: scale(1.05);
+  background-color: var(--primary-light);
+}
+.btn-delete {
+  background-color: var(--danger-bg);
+  color: #fff;
+}
+.btn-delete:hover {
+  background-color: var(--danger-hover);
+}
+
+/* Flash Messages */
+.flashes {
+  list-style: none;
+  padding: 0;
+}
+.flashes li {
+  padding: 8px;
+  margin-bottom: 8px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+.flashes li.success {
+  background-color: #16A34A;
+}
+.flashes li.danger {
+  background-color: #DC2626;
+}
+
+/* Category Buttons on Dashboard */
+.category-buttons {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+.cat {
+  text-align: center;
+  margin: 10px;
+}
+.cat h2 {
+  margin-bottom: 8px;
+  font-size: 1.2rem;
+}
+.cat-btn {
+  padding: 10px 20px;
+  font-size: 1rem;
+  border-radius: 6px;
+  background: linear-gradient(45deg, var(--primary-color), var(--primary-light));
+  color: var(--bg-color);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.cat-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.8);
+}
+
+/* Search & Sort Bar */
+.search-sort {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+.search-form {
+  flex: 1;
+  margin-right: 10px;
+}
+.search-form input {
+  margin-right: 5px;
+  font-size: 0.9rem;
+}
+.sort-options {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+.sort-btn {
+  margin-right: 5px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  background-color: var(--primary-light);
+  color: var(--bg-color);
+}
+
+/* Member Table (Auto Layout, No Horizontal Overflow) */
+.member-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  table-layout: auto;
+}
+.member-table thead th {
+  background-color: var(--nav-bg);
+  color: var(--text-color);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.member-table th,
+.member-table td {
+  border: 1px solid var(--border-color);
+  padding: 8px;
+  vertical-align: top;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  font-size: 0.8rem;
+  text-align: left;
+}
+.member-table td {
+  white-space: normal;
+}
+
+/* Adjust Action Buttons in Table */
+.member-table td.col-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
+
+/* Profile Photos */
+.profile-photo {
+  max-width: 40px;
+  height: auto;
+  border-radius: 50%;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: 30px 10px;
+  background-color: var(--nav-bg);
+  position: relative;
+  overflow: hidden;
+}
+.footer-text p {
+  font-size: 1.1rem;
+  margin: 0;
+  font-weight: 700;
+  position: relative;
+  z-index: 2;
+}
+
+/* Electricity Light Animation for Footer */
+@keyframes electricity {
+  0% { box-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
+  50% { box-shadow: 0 0 20px var(--primary-light), 0 0 30px var(--primary-light); }
+  100% { box-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color); }
+}
+footer .footer-text {
+  display: inline-block;
+  animation: electricity 2s infinite;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  header h1 {
+    font-size: 1.6rem;
+  }
+  nav ul {
+    flex-direction: column;
+    align-items: center;
+  }
+  .category-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+  .cat-btn {
+    margin-bottom: 10px;
+  }
+  .member-table th,
+  .member-table td {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  header h1 {
+    font-size: 1.4rem;
+  }
+  .search-sort {
+    flex-direction: column;
+  }
+  .search-form,
+  .sort-options {
+    width: 100%;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  button, .btn, .cat-btn {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+  .member-table th,
+  .member-table td {
+    font-size: 0.75rem;
+  }
+}

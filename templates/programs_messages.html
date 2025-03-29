@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Programs &amp; Messages{% endblock %}
+{% block content %}
+<div class="subpage">
+  <h2>Programs &amp; Messages</h2>
+  <ul class="folder-list">
+    {% for folder in folders %}
+      <li>
+        <strong>{{ folder.name }}</strong>
+        <a class="btn" href="{{ url_for('view_folder', folder_id=folder.id) }}">View Contents</a>
+      </li>
+    {% endfor %}
+  </ul>
+  <p><a class="btn" href="{{ url_for('dashboard') }}">Back to Dashboard</a></p>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Member Details{% endblock %}
+{% block content %}
+<div class="subpage">
+  <p><a class="btn" href="{{ url_for('dashboard') }}">Back to Dashboard</a></p>
+  <h2>Member Details</h2>
+  <p><strong>ID:</strong> {{ member.id }}</p>
+  <p><strong>Barcode:</strong> {{ member.barcode }}</p>
+  <p><strong>Name:</strong> {{ member.name }}</p>
+  <p><strong>Department:</strong> {{ member.department }}</p>
+  <p><strong>Category:</strong> {{ member.category }}</p>
+  <p>
+    <strong>Picture:</strong>
+    {% if member.picture %}
+      <img src="{{ url_for('uploaded_member', filename=member.picture) }}" alt="{{ member.name }}" class="profile-photo-large">
+    {% else %}
+      No Picture
+    {% endif %}
+  </p>
+</div>
+{% endblock %}

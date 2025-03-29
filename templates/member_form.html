@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ action }} Member</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="form-container">
+    <h2>{{ action }} Member</h2>
+    <form method="POST" enctype="multipart/form-data">
+      <label>Full Name</label>
+      <input type="text" name="full_name" value="{{ member.full_name if member else '' }}" required>
+      
+      <label>Member I.D/Barcode</label>
+      <input type="text" name="barcode" value="{{ member.barcode if member else '' }}" required>
+      
+      <label>Department</label>
+      <input type="text" name="department" value="{{ member.department if member else '' }}">
+      
+      <label>Assembly</label>
+      <input type="text" name="assembly" value="{{ member.assembly if member else '' }}">
+      
+      <label>Entry Type</label>
+      <input type="text" name="entry_type" value="{{ member.entry_type if member else '' }}">
+      
+      <label>Entry Year</label>
+      <input type="text" name="entry_year" value="{{ member.entry_year if member else '' }}">
+      
+      <label>Date of Birth (YYYY-MM-DD)</label>
+      <input type="date" name="date_of_birth" value="{{ member.date_of_birth.strftime('%Y-%m-%d') if member and member.date_of_birth else '' }}">
+      
+      <label>Category</label>
+      <select name="category">
+        <option value="ADULT" {% if member and member.category=='ADULT' %}selected{% endif %}>ADULT</option>
+        <option value="YOUTH" {% if member and member.category=='YOUTH' %}selected{% endif %}>YOUTH</option>
+        <option value="CHILDREN" {% if member and member.category=='CHILDREN' %}selected{% endif %}>CHILDREN</option>
+      </select>
+      
+      <label>Picture (Profile Photo)</label>
+      <input type="file" name="picture">
+      
+      <button type="submit" class="btn">{{ action }} Member</button>
+    </form>
+    
+    <hr>
+    <h3>Batch Upload via Excel</h3>
+    <form method="POST" enctype="multipart/form-data">
+      <label>Upload Excel File</label>
+      <input type="file" name="excel_file" accept=".xlsx,.xls">
+      <button type="submit" class="btn">Batch Upload</button>
+    </form>
+    
+    <p><a class="btn" href="{{ url_for('dashboard') }}">Back to Dashboard</a></p>
+  </div>
+</body>
+</html>

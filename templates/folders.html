@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Folders & Documents{% endblock %}
+{% block content %}
+<div class="subpage">
+  <h2>Folders & Documents</h2>
+  <form method="GET" class="search-form">
+    <input type="text" name="search" placeholder="Search folders and files..." value="{{ search or '' }}">
+    <button type="submit" class="btn">Search</button>
+  </form>
+  <p>
+    <a class="btn" href="{{ url_for('create_folder') }}">Create New Folder</a> |
+    <a class="btn" href="{{ url_for('upload_file') }}">Upload Document</a>
+  </p>
+  <h3>Folders</h3>
+  {% if folders %}
+    <ul class="folder-list">
+      {% for folder in folders %}
+        <li>
+          <strong>{{ folder.name }}</strong>
+          <a class="btn" href="{{ url_for('rename_folder', folder_id=folder.id) }}">Rename</a>
+          <form action="{{ url_for('delete_folder', folder_id=folder.id) }}" method="POST" style="display:inline;">
+            <button type="submit" class="btn btn-delete" onclick="return confirm('Delete folder?')">Delete</button>
+          </form>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No folders found.</p>
+  {% endif %}
+  
+  <h3>Documents</h3>
+  {% if documents %}
+    <ul class="document-list">
+      {% for doc in documents %}
+        <li>
+          <strong>{{ doc.filename }}</strong>
+          <a class="btn" href="{{ url_for('view_document', doc_id=doc.id) }}">View</a>
+          <a class="btn" href="{{ url_for('rename_document', doc_id=doc.id) }}">Rename</a>
+          <form action="{{ url_for('delete_document', doc_id=doc.id) }}" method="POST" style="display:inline;">
+            <button type="submit" class="btn btn-delete" onclick="return confirm('Delete document?')">Delete</button>
+          </form>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No documents found.</p>
+  {% endif %}
+</div>
+{% endblock %}
