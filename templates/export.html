@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Export Data{% endblock %}
+{% block content %}
+<div class="subpage">
+  <h2>Export Data</h2>
+  <form method="POST" action="{{ url_for('export') }}">
+    <h3>Select Export Type</h3>
+    <label>
+      <input type="radio" name="export_type" value="members" checked> Member Records
+    </label>
+    <label>
+      <input type="radio" name="export_type" value="programs"> Programs &amp; Messages
+    </label>
+    <hr>
+    <div id="member-export-options">
+      <h3>Export Member Records</h3>
+      <label>Category:</label>
+      <select name="member_category">
+        <option value="ADULT">ADULT</option>
+        <option value="YOUTH">YOUTH</option>
+        <option value="CHILDREN">CHILDREN</option>
+      </select>
+      <h4>Select Columns to Export:</h4>
+      {% for col in ['ID', 'Full Name', 'Barcode', 'Department', 'Assembly', 'Entry Type', 'Entry Year', 'Date of Birth', 'Category'] %}
+        <label>
+          <input type="checkbox" name="member_columns" value="{{ col }}" checked> {{ col }}
+        </label>
+      {% endfor %}
+    </div>
+    <div id="programs-export-options" style="display: none;">
+      <h3>Export Program &amp; Messages</h3>
+      <label>Select Main Folder:</label>
+      <select name="folder_id">
+        <option value="">All</option>
+        {% for folder in folders %}
+          <option value="{{ folder.id }}">{{ folder.name }}</option>
+        {% endfor %}
+      </select>
+      <h4>Select Document Fields:</h4>
+      {% for col in ['Document ID', 'Filename', 'Folder ID'] %}
+        <label>
+          <input type="checkbox" name="doc_columns" value="{{ col }}" checked> {{ col }}
+        </label>
+      {% endfor %}
+    </div>
+    <br>
+    <button type="submit" class="btn">Export CSV</button>
+  </form>
+</div>
+
+<script>
+  const exportTypeRadios = document.getElementsByName('export_type');
+  const memberOptions = document.getElementById('member-export-options');
+  const programsOptions = document.getElementById('programs-export-options');
+
+  function toggleExportOptions() {
+    if(document.querySelector('input[name="export_type"]:checked').value === 'members') {
+      memberOptions.style.display = 'block';
+      programsOptions.style.display = 'none';
+    } else {
+      memberOptions.style.display = 'none';
+      programsOptions.style.display = 'block';
+    }
+  }
+
+  exportTypeRadios.forEach(radio => {
+    radio.addEventListener('change', toggleExportOptions);
+  });
+
+  toggleExportOptions(); // Initialize on page load
+</script>
+{% endblock %}

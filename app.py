@@ -7,18 +7,24 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user, UserMixin
+from dotenv import load_dotenv
+
+# Load environment variables from .env (for local testing)
+load_dotenv()
 
 app = Flask(__name__)
 
-# Basic configuration
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'default-secret-key')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///church.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# Determine which database URL to use based on USE_INTERNAL_DB
+if os.environ.get("USE_INTERNAL_DB", "false").lower() == "true":
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('INTERNAL_DATABASE_URL')
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('EXTERNAL_DATABASE_URL')
 
-# Additional configuration from environment variable (if needed)
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'default-secret-key')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['CHURCH_DATABASE'] = os.environ.get('church_database', 'default_value')
 
-# Configure upload folders
+# Configure upload folders (Note: Files on free hosting may be ephemeral)
 app.config['MEMBER_UPLOAD_FOLDER'] = os.path.join('static', 'uploads', 'members')
 app.config['DOCUMENT_UPLOAD_FOLDER'] = os.path.join('static', 'uploads', 'documents')
 os.makedirs(app.config['MEMBER_UPLOAD_FOLDER'], exist_ok=True)
@@ -36,24 +42,24 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(150), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
     role = db.Column(db.String(50), nullable=False)  # 'main_admin' or 'co_admin'
-    
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
-        
+
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
 class Member(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    full_name = db.Column(db.String(150), nullable=False)  # Required
-    barcode = db.Column(db.String(100), unique=True, nullable=False)  # Member I.D/Barcode
+    full_name = db.Column(db.String(150), nullable=False)
+    barcode = db.Column(db.String(100), unique=True, nullable=False)
     department = db.Column(db.String(150))
     assembly = db.Column(db.String(150))
-    picture = db.Column(db.String(150))  # Stored filename for member image
+    picture = db.Column(db.String(150))
     entry_type = db.Column(db.String(50))
     entry_year = db.Column(db.String(4))
     date_of_birth = db.Column(db.Date)
-    category = db.Column(db.String(20))  # 'ADULT', 'YOUTH', or 'CHILDREN'
+    category = db.Column(db.String(20))  # 'ADULT', 'YOUTH', 'CHILDREN'
 
 class Folder(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -148,9 +154,23 @@ def list_members(category):
     search_term = request.args.get('search')
     sort_order = request.args.get('sort', 'asc')
     if search_term:
-        query = query.filter(Member.full_name.contains(search_term) | Member.barcode.contains(search_term))
-    if sort_order == 'desc':
+        query = query.filter(
+            Member.full_name.contains(search_term) |
+            Member.barcode.contains(search_term) |
+            Member.department.contains(search_term)
+        )
+    if sort_order == 'name_asc':
+        query = query.order_by(Member.full_name.asc())
+    elif sort_order == 'name_desc':
         query = query.order_by(Member.full_name.desc())
+    elif sort_order == 'dept_asc':
+        query = query.order_by(Member.department.asc())
+    elif sort_order == 'dept_desc':
+        query = query.order_by(Member.department.desc())
+    elif sort_order == 'barcode_asc':
+        query = query.order_by(Member.barcode.asc())
+    elif sort_order == 'barcode_desc':
+        query = query.order_by(Member.barcode.desc())
     else:
         query = query.order_by(Member.full_name.asc())
     members = query.all()
@@ -169,7 +189,7 @@ def add_member():
         assembly = request.form.get('assembly')
         entry_type = request.form.get('entry_type')
         entry_year = request.form.get('entry_year')
-        dob_str = request.form.get('date_of_birth')  # Format: YYYY-MM-DD
+        dob_str = request.form.get('date_of_birth')
         dob = datetime.strptime(dob_str, '%Y-%m-%d').date() if dob_str else None
         category = request.form.get('category')
         picture = request.files.get('picture')
@@ -246,26 +266,76 @@ def scan_member():
             flash('Member not found', 'danger')
     return render_template('scan_member.html', member=member)
 
-@app.route('/export_csv')
+# ----------------------
+# Export Feature with Column Selection
+# ----------------------
+@app.route('/export', methods=['GET', 'POST'])
 @login_required
-def export_csv():
-    members = Member.query.all()
-    def generate():
-        data = [['ID', 'Full Name', 'Barcode', 'Department', 'Assembly', 'Entry Type', 'Entry Year', 'Date of Birth', 'Category']]
-        for m in members:
-            dob = m.date_of_birth.strftime('%Y-%m-%d') if m.date_of_birth else ''
-            data.append([m.id, m.full_name, m.barcode, m.department, m.assembly, m.entry_type, m.entry_year, dob, m.category])
-        for row in data:
-            yield ','.join(str(item) for item in row) + "\n"
-    return Response(generate(), mimetype="text/csv", headers={"Content-Disposition": "attachment;filename=members.csv"})
+def export():
+    if request.method == 'POST':
+        export_type = request.form.get('export_type')
+        if export_type == 'members':
+            category = request.form.get('member_category')
+            selected_columns = request.form.getlist('member_columns')
+            query = Member.query.filter_by(category=category.upper())
+            members = query.all()
+            def generate_members():
+                yield ','.join(selected_columns) + "\n"
+                for m in members:
+                    row = []
+                    for col in selected_columns:
+                        if col == 'ID':
+                            row.append(str(m.id))
+                        elif col == 'Full Name':
+                            row.append(m.full_name)
+                        elif col == 'Barcode':
+                            row.append(m.barcode)
+                        elif col == 'Department':
+                            row.append(m.department or '')
+                        elif col == 'Assembly':
+                            row.append(m.assembly or '')
+                        elif col == 'Entry Type':
+                            row.append(m.entry_type or '')
+                        elif col == 'Entry Year':
+                            row.append(m.entry_year or '')
+                        elif col == 'Date of Birth':
+                            row.append(m.date_of_birth.strftime('%Y-%m-%d') if m.date_of_birth else '')
+                        elif col == 'Category':
+                            row.append(m.category)
+                        else:
+                            row.append('')
+                    yield ','.join(row) + "\n"
+            return Response(generate_members(), mimetype="text/csv", headers={"Content-Disposition": "attachment;filename=members_export.csv"})
+        elif export_type == 'programs':
+            folder_id = request.form.get('folder_id')
+            selected_columns = request.form.getlist('doc_columns')
+            documents = Document.query.filter_by(folder_id=folder_id).all() if folder_id else Document.query.all()
+            def generate_documents():
+                yield ','.join(selected_columns) + "\n"
+                for doc in documents:
+                    row = []
+                    for col in selected_columns:
+                        if col == 'Document ID':
+                            row.append(str(doc.id))
+                        elif col == 'Filename':
+                            row.append(doc.filename)
+                        elif col == 'Folder ID':
+                            row.append(str(doc.folder_id) if doc.folder_id else '')
+                        else:
+                            row.append('')
+                    yield ','.join(row) + "\n"
+            return Response(generate_documents(), mimetype="text/csv", headers={"Content-Disposition": "attachment;filename=documents_export.csv"})
+    member_columns = ['ID', 'Full Name', 'Barcode', 'Department', 'Assembly', 'Entry Type', 'Entry Year', 'Date of Birth', 'Category']
+    doc_columns = ['Document ID', 'Filename', 'Folder ID']
+    folders_list = Folder.query.filter_by(parent_id=None).all()
+    return render_template('export.html', member_columns=member_columns, doc_columns=doc_columns, folders=folders_list)
 
 # ----------------------
-# Programs & Messages (View Mode)
+# Programs & Messages (View Mode) Routes
 # ----------------------
 @app.route('/programs_messages', methods=['GET'])
 @login_required
 def programs_messages():
-    # Display only main folder names with a "View Contents" button.
     main_folders = Folder.query.filter_by(parent_id=None).all()
     return render_template('programs_messages.html', folders=main_folders)
 
@@ -278,7 +348,7 @@ def view_folder(folder_id):
     return render_template('view_folder.html', folder=folder, subfolders=subfolders, documents=documents)
 
 # ----------------------
-# Folders Management (Action Mode)
+# Folders Management (Action Mode) Routes
 # ----------------------
 @app.route('/folders', methods=['GET'])
 @login_required
@@ -306,7 +376,7 @@ def create_folder():
     folders_all = Folder.query.all()
     return render_template('create_folder.html', folders=folders_all)
 
-@app.route('/folder/rename/<int:folder_id>', methods=['GET','POST'])
+@app.route('/folder/rename/<int:folder_id>', methods=['GET', 'POST'])
 @login_required
 def rename_folder(folder_id):
     folder = Folder.query.get_or_404(folder_id)
@@ -349,7 +419,7 @@ def upload_file():
     folders_all = Folder.query.all()
     return render_template('upload_document.html', folders=folders_all)
 
-@app.route('/document/rename/<int:doc_id>', methods=['GET','POST'])
+@app.route('/document/rename/<int:doc_id>', methods=['GET', 'POST'])
 @login_required
 def rename_document(doc_id):
     doc = Document.query.get_or_404(doc_id)
@@ -442,7 +512,6 @@ def delete_user(user_id):
 # Run the Application
 # ----------------------
 if __name__ == '__main__':
-    import os
     port = int(os.environ.get("PORT", 5000))
     with app.app_context():
         db.create_all()

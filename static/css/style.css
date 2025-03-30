@@ -1,5 +1,5 @@
 /* ------------------------------
-   Supabase-Inspired Dark Theme with Mobile-Friendly Table Layout
+   Render PostgreSQL-Inspired Dark Theme with Mobile-Friendly Table Layout
 ------------------------------ */
 
 /* Root Color Variables */
@@ -171,7 +171,7 @@ button:hover, .btn:hover {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  margin-bottom: 20px;  /* Increased spacing below search bar */
+  margin-bottom: 20px;
 }
 .search-form {
   flex: 1;
@@ -180,12 +180,12 @@ button:hover, .btn:hover {
 .sort-options {
   display: flex;
   align-items: center;
-  gap: 8px;  /* Added gap between sort buttons and label */
+  gap: 8px;
   margin-top: 10px;
   font-size: 0.9rem;
 }
 
-/* Member Table (Auto Layout) */
+/* Member Table */
 .member-table {
   width: 100%;
   border-collapse: collapse;
@@ -217,7 +217,7 @@ button:hover, .btn:hover {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 8px;  /* Ensures buttons have space between them */
+  gap: 8px;
 }
 
 /* Profile Photos */
