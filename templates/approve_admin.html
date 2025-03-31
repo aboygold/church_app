@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Approve Admins{% endblock %}
+{% block content %}
+<div class="subpage">
+  <h2>Pending Admin Approvals</h2>
+  {% if pending_users %}
+    <table>
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Role</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in pending_users %}
+        <tr>
+          <td>{{ user.username }}</td>
+          <td>{{ user.role }}</td>
+          <td>
+            <form method="POST" action="{{ url_for('approve_admins') }}">
+              <input type="hidden" name="user_id" value="{{ user.id }}">
+              <button type="submit" class="btn">Approve</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No pending admin approvals.</p>
+  {% endif %}
+</div>
+{% endblock %}

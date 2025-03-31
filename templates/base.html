@@ -20,6 +20,7 @@
         <li><a href="{{ url_for('export') }}">Export CSV</a></li>
         {% if current_user.role == 'main_admin' %}
         <li><a href="{{ url_for('assign_roles') }}">Assign Roles</a></li>
+        <li><a href="{{ url_for('approve_admins') }}">Approve Admins</a></li>
         {% endif %}
         <li><a href="{{ url_for('logout') }}">Logout</a></li>
       </ul>
@@ -40,12 +41,9 @@
   </div>
   <footer>
     <div class="footer-text">
-      <p>All Right Reserved.
-
-        Designed and Developed by R.F.C.M IT DEPARTMENT.
-        
-        Copyrights © 2025.</p>
+      <p>Copyrights © 2025<br>All Right Reserved.<br>DESIGNED AND DEVELOPED BY R.F.C.M IT DEPARTMENT</p>
     </div>
   </footer>
+  {% block scripts %}{% endblock %}
 </body>
 </html>

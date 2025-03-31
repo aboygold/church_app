@@ -2,20 +2,38 @@
 {% block title %}Dashboard{% endblock %}
 {% block content %}
 <div class="dashboard">
-  <p class="welcome">Welcome, {{ current_user.username }} ({{ current_user.role }})</p>
-  <div class="category-buttons">
-    <div class="cat">
-      <h2>ADULT</h2>
-      <a class="btn cat-btn" href="{{ url_for('list_members', category='ADULT') }}">View Adult Members</a>
+  <h2>Main Dashboard</h2>
+  <div class="realtime-datetime">
+    <span id="currentDateTime"></span>
+  </div>
+  <div class="category-overview">
+    <div class="category-card">
+      <h3>ADULT</h3>
+      <p>Total Records: {{ adult_count }}</p>
+      <a class="btn" href="{{ url_for('list_members', category='ADULT') }}">View Records</a>
     </div>
-    <div class="cat">
-      <h2>YOUTH</h2>
-      <a class="btn cat-btn" href="{{ url_for('list_members', category='YOUTH') }}">View Youth Members</a>
+    <div class="category-card">
+      <h3>YOUTH</h3>
+      <p>Total Records: {{ youth_count }}</p>
+      <a class="btn" href="{{ url_for('list_members', category='YOUTH') }}">View Records</a>
     </div>
-    <div class="cat">
-      <h2>CHILDREN</h2>
-      <a class="btn cat-btn" href="{{ url_for('list_members', category='CHILDREN') }}">View Children Members</a>
+    <div class="category-card">
+      <h3>CHILDREN</h3>
+      <p>Total Records: {{ children_count }}</p>
+      <a class="btn" href="{{ url_for('list_members', category='CHILDREN') }}">View Records</a>
     </div>
   </div>
 </div>
+{% endblock %}
+{% block scripts %}
+<script>
+  function updateDateTime() {
+    const now = new Date();
+    const options = { year: 'numeric', month: 'long', day: 'numeric', 
+                      hour: '2-digit', minute: '2-digit', second: '2-digit' };
+    document.getElementById('currentDateTime').innerText = now.toLocaleDateString(undefined, options);
+  }
+  setInterval(updateDateTime, 1000);
+  updateDateTime();
+</script>
 {% endblock %}

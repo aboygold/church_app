@@ -14,8 +14,7 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# Use internal connection string on Render and external locally.
-# For local testing, set USE_INTERNAL_DB to false in .env.
+# Choose database URI based on environment.
 if os.environ.get("USE_INTERNAL_DB", "false").lower() == "true":
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('INTERNAL_DATABASE_URL')
 else:
@@ -23,9 +22,14 @@ else:
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'default-secret-key')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['CHURCH_DATABASE'] = os.environ.get('church_database', 'default_value')
 
-# Configure upload folders (note: data stored in these folders may be ephemeral on free hosting)
+# Use engine options to recycle connections and pre-ping them.
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_recycle': 280,
+    'pool_pre_ping': True
+}
+
+# Configure upload folders (Note: Uploaded files may be ephemeral on Render)
 app.config['MEMBER_UPLOAD_FOLDER'] = os.path.join('static', 'uploads', 'members')
 app.config['DOCUMENT_UPLOAD_FOLDER'] = os.path.join('static', 'uploads', 'documents')
 os.makedirs(app.config['MEMBER_UPLOAD_FOLDER'], exist_ok=True)
@@ -35,18 +39,24 @@ db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
+# Initialize Flask-Migrate
+from flask_migrate import Migrate
+migrate = Migrate(app, db)
+
 # ----------------------
 # Database Models
 # ----------------------
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
+    # Email field removed.
     password_hash = db.Column(db.String(256), nullable=False)
-    role = db.Column(db.String(50), nullable=False)  # 'main_admin' or 'co_admin'
+    role = db.Column(db.String(50), nullable=False)  # 'main_admin' or 'admin'
+    approved = db.Column(db.Boolean, default=False)   # Non-main admin require approval
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
-
+    
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
@@ -60,7 +70,7 @@ class Member(db.Model):
     entry_type = db.Column(db.String(50))
     entry_year = db.Column(db.String(4))
     date_of_birth = db.Column(db.Date)
-    category = db.Column(db.String(20))  # 'ADULT', 'YOUTH', 'CHILDREN'
+    category = db.Column(db.String(20))  # 'ADULT', 'YOUTH', or 'CHILDREN'
 
 class Folder(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -96,38 +106,45 @@ def uploaded_document(filename):
 def home():
     return redirect(url_for('login'))
 
-@app.route('/login', methods=['GET','POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
+    # Login requires only username and password.
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
         user = User.query.filter_by(username=username).first()
-        if user and user.check_password(password):
-            login_user(user)
-            flash(f'Welcome, {user.username}!', 'success')
-            return redirect(url_for('dashboard'))
-        else:
-            flash('Invalid credentials', 'danger')
+        if user:
+            if user.role != 'main_admin' and not user.approved:
+                flash('Your account is pending approval by the main admin.', 'danger')
+                return redirect(url_for('login'))
+            if user.check_password(password):
+                login_user(user)
+                flash(f'Welcome, {user.username}!', 'success')
+                return redirect(url_for('dashboard'))
+        flash('Invalid credentials', 'danger')
     return render_template('login.html')
 
-@app.route('/signup', methods=['GET','POST'])
+@app.route('/signup', methods=['GET', 'POST'])
 def signup():
-    if User.query.first() and (not current_user.is_authenticated or current_user.role != 'main_admin'):
-        flash('Only the main admin can create new admin accounts', 'danger')
-        return redirect(url_for('login'))
+    # Signup requires username, password, and role.
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
         role = request.form.get('role')
+        approved = True if not User.query.first() or role == 'main_admin' else False
         if User.query.filter_by(username=username).first():
             flash('Username already exists', 'danger')
             return redirect(url_for('signup'))
-        new_user = User(username=username, role=role)
+        new_user = User(username=username, role=role, approved=approved)
         new_user.set_password(password)
         db.session.add(new_user)
         db.session.commit()
-        flash('Account created successfully', 'success')
-        return redirect(url_for('login'))
+        if approved:
+            flash('Account created successfully', 'success')
+            return redirect(url_for('login'))
+        else:
+            flash('Your account is pending approval by the main admin.', 'info')
+            return redirect(url_for('login'))
     return render_template('signup.html')
 
 @app.route('/logout')
@@ -138,7 +155,7 @@ def logout():
     return redirect(url_for('login'))
 
 # ----------------------
-# Dashboard Route
+# Dashboard with Real-Time Date/Time
 # ----------------------
 @app.route('/dashboard')
 @login_required
@@ -152,7 +169,7 @@ def dashboard():
                            children_count=children_count)
 
 # ----------------------
-# Member Management Routes
+# Member Management
 # ----------------------
 @app.route('/members/<category>', methods=['GET'])
 @login_required
@@ -181,9 +198,12 @@ def list_members(category):
     else:
         query = query.order_by(Member.full_name.asc())
     members = query.all()
-    return render_template(f"{category.lower()}_members.html", members=members, category=category, sort_order=sort_order)
+    return render_template(f"{category.lower()}_members.html",
+                           members=members,
+                           category=category,
+                           sort_order=sort_order)
 
-@app.route('/member/add', methods=['GET','POST'])
+@app.route('/member/add', methods=['GET', 'POST'])
 @login_required
 def add_member():
     if request.method == 'POST':
@@ -222,7 +242,7 @@ def add_member():
         return redirect(url_for('dashboard'))
     return render_template('member_form.html', action='Add')
 
-@app.route('/member/edit/<int:member_id>', methods=['GET','POST'])
+@app.route('/member/edit/<int:member_id>', methods=['GET', 'POST'])
 @login_required
 def edit_member(member_id):
     member = Member.query.get_or_404(member_id)
@@ -262,7 +282,7 @@ def member_details(member_id):
     member = Member.query.get_or_404(member_id)
     return render_template('member_details.html', member=member)
 
-@app.route('/member/scan', methods=['GET','POST'])
+@app.route('/member/scan', methods=['GET', 'POST'])
 @login_required
 def scan_member():
     member = None
@@ -274,7 +294,7 @@ def scan_member():
     return render_template('scan_member.html', member=member)
 
 # ----------------------
-# Export Feature with Column Selection
+# Export Feature
 # ----------------------
 @app.route('/export', methods=['GET', 'POST'])
 @login_required
@@ -338,7 +358,7 @@ def export():
     return render_template('export.html', member_columns=member_columns, doc_columns=doc_columns, folders=folders_list)
 
 # ----------------------
-# Programs & Messages (View Mode) Routes
+# Programs & Messages
 # ----------------------
 @app.route('/programs_messages', methods=['GET'])
 @login_required
@@ -355,7 +375,7 @@ def view_folder(folder_id):
     return render_template('view_folder.html', folder=folder, subfolders=subfolders, documents=documents)
 
 # ----------------------
-# Folders Management (Action Mode) Routes
+# Folders Management
 # ----------------------
 @app.route('/folders', methods=['GET'])
 @login_required
@@ -480,7 +500,7 @@ def view_document(doc_id):
         return send_from_directory(app.config['DOCUMENT_UPLOAD_FOLDER'], doc.filename)
 
 # ----------------------
-# Admin Credential Management Routes
+# Admin Management & Approval
 # ----------------------
 @app.route('/assign_roles', methods=['GET', 'POST'])
 @login_required
@@ -499,6 +519,23 @@ def assign_roles():
             flash('User role updated', 'success')
         return redirect(url_for('assign_roles'))
     return render_template('assign_roles.html', users=users)
+
+@app.route('/approve_admins', methods=['GET', 'POST'])
+@login_required
+def approve_admins():
+    if current_user.role != 'main_admin':
+        flash('Only main admin can approve admin signups', 'danger')
+        return redirect(url_for('dashboard'))
+    pending_users = User.query.filter_by(approved=False).all()
+    if request.method == 'POST':
+        user_id = request.form.get('user_id')
+        user = User.query.get(user_id)
+        if user:
+            user.approved = True
+            db.session.commit()
+            flash(f'User {user.username} approved', 'success')
+        return redirect(url_for('approve_admins'))
+    return render_template('approve_admins.html', pending_users=pending_users)
 
 @app.route('/delete_user/<int:user_id>', methods=['POST'])
 @login_required
