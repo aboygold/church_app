@@ -9,12 +9,13 @@ from werkzeug.utils import secure_filename
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user, UserMixin
 from dotenv import load_dotenv
 
-# Load environment variables from .env (for local testing)
+# Load environment variables from .env
 load_dotenv()
 
 app = Flask(__name__)
 
-# Determine which database URL to use based on USE_INTERNAL_DB
+# Use internal connection string on Render and external locally.
+# For local testing, set USE_INTERNAL_DB to false in .env.
 if os.environ.get("USE_INTERNAL_DB", "false").lower() == "true":
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('INTERNAL_DATABASE_URL')
 else:
@@ -24,7 +25,7 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'default-secret-key')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['CHURCH_DATABASE'] = os.environ.get('church_database', 'default_value')
 
-# Configure upload folders (Note: Files on free hosting may be ephemeral)
+# Configure upload folders (note: data stored in these folders may be ephemeral on free hosting)
 app.config['MEMBER_UPLOAD_FOLDER'] = os.path.join('static', 'uploads', 'members')
 app.config['DOCUMENT_UPLOAD_FOLDER'] = os.path.join('static', 'uploads', 'documents')
 os.makedirs(app.config['MEMBER_UPLOAD_FOLDER'], exist_ok=True)
@@ -142,7 +143,13 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    return render_template('dashboard.html')
+    adult_count = Member.query.filter_by(category='ADULT').count()
+    youth_count = Member.query.filter_by(category='YOUTH').count()
+    children_count = Member.query.filter_by(category='CHILDREN').count()
+    return render_template('dashboard.html',
+                           adult_count=adult_count,
+                           youth_count=youth_count,
+                           children_count=children_count)
 
 # ----------------------
 # Member Management Routes
